@@ -39,14 +39,19 @@
         });
         const data = await response.json();
         if (data.correct) {
-            document.getElementById('result').textContent = 'Correct! Well done.';
-            setTimeout(getPasswords, 2000);
+            document.getElementById('result').textContent = 'Correct! You guessed the right password.';
+            document.getElementById('gameOverScreen').style.display = 'block';
+            document.getElementById('passwords').style.display = 'none';
         } else {
-            document.getElementById('result').textContent = 'Incorrect. Try again.';
-            gameOver(); // Call the gameOver function when the guess is incorrect
+            document.getElementById('result').textContent = 'Wrong guess. Try again!';
         }
-    }
 
+        document.getElementById('tryAgainButton').onclick = () => {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('passwords').style.display = 'block';
+            getPasswords(); // Call getPasswords to reset the game
+        };
+    }
     function gameOver() {
         // Show the game over screen
         document.getElementById('gameOverScreen').style.display = 'block';

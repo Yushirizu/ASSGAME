@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Guessing Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        button { margin: 20px; padding: 10px 20px; font-size: 16px; }
+    </style>
+</head>
+<body>
+<h1>Password Guessing Game</h1>
+<div id="passwords">
+    <button id="pw1"></button>
+    <button id="pw2"></button>
+</div>
+<div id="gameOverScreen" style="display: none;">
+    <h1>Game Over</h1>
+    <button id="tryAgainButton">Try Again</button>
+</div>
+<p id="result"></p>
+<script>
+    async function getPasswords() {
+        const response = await fetch('/get_passwords');
+        const data = await response.json();
+        document.getElementById('pw1').textContent = data.password1;
+        document.getElementById('pw2').textContent = data.password2;
+        document.getElementById('result').textContent = '';
+        document.getElementById('pw1').onclick = () => checkGuess(1, data.password1, data.password2);
+        document.getElementById('pw2').onclick = () => checkGuess(2, data.password1, data.password2);
+    }
+
+    async function checkGuess(guess, pw1, pw2) {
+        const response = await fetch('/check_guess', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ guess: guess.toString(), password1: pw1, password2: pw2 })
+        });
+        const data = await response.json();
+        if (data.correct) {
+            document.getElementById('result').textContent = 'Correct! Well done.';
+            setTimeout(getPasswords, 2000);
+        } else {
+            document.getElementById('result').textContent = 'Incorrect. Try again.';
+            gameOver(); // Call the gameOver function when the guess is incorrect
+        }
+    }
+
+    function gameOver() {
+        // Show the game over screen
+        document.getElementById('gameOverScreen').style.display = 'block';
+
+        // Add a click event listener to the try again button
+        document.getElementById('tryAgainButton').addEventListener('click', function() {
+            // Make a POST request to the reset_game route
+            fetch('/reset_game', { method: 'POST' })
+                .then(function(response) {
+                    if (response.ok) {
+                        // Hide the game over screen
+                        document.getElementById('gameOverScreen').style.display = 'none';
+                        // Fetch new passwords and update the buttons
+                        getPasswords();
+                    } else {
+                        console.error('Failed to reset game');
+                    }
+                });
+        });
+    }
+
+    getPasswords();
+</script>
+</body>
+</html>
